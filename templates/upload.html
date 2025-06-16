@@ -2,20 +2,166 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Сервер картинок</title>
+    <title>Сервер картинок — Загрузка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        nav {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        nav a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px 18px;
+            background-color: #4a90e2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #357ABD;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #4a90e2;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #357ABD;
+        }
+
+        #fileInfo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #555;
+            font-size: 1em;
+        }
+
+        .checkmark {
+            color: green;
+            font-size: 1.2em;
+        }
+
+        input[type="submit"] {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #357ABD;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>Загрузить картинку</h1>
-    <ul>
-    <li><a href="/upload">Загрузить изображение</a></li>
-    <li><a href="/images">Посмотреть изображения</a></li>
-    </ul>
+    <header>
+        <h1>Загрузить картинку</h1>
+    </header>
 
-    <form action="/upload/" enctype="multipart/form-data" method="post">
-        <input type="file" name="file" accept=".jpg, .jpeg, .png, .gif" required>
-        <br>
-        <input type="submit" value="Загрузить">
-    </form>
+    <nav>
+        <a href="/upload">Загрузка</a>
+        <a href="/images">Галерея</a>
+        <a href="/">На главную</a>
+    </nav>
+
+    <main>
+        <form action="/upload/" enctype="multipart/form-data" method="post">
+            <input type="file" name="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif" required>
+            <label for="fileInput" class="custom-file-upload">📁 Выберите файл</label>
+            <span id="fileInfo"></span>
+            <input type="submit" value="Загрузить">
+        </form>
+    </main>
+
+    <footer>
+        © 2025 Сервер Картинок
+    </footer>
+
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const fileInfo = document.getElementById("fileInfo");
+
+        fileInput.addEventListener("change", function () {
+            fileInfo.innerHTML = "";
+
+            if (fileInput.files.length > 0) {
+                const name = fileInput.files[0].name;
+
+                const fileNameSpan = document.createElement("span");
+                fileNameSpan.textContent = name;
+
+                const checkmark = document.createElement("span");
+                checkmark.textContent = "✅";
+                checkmark.classList.add("checkmark");
+
+                fileInfo.appendChild(fileNameSpan);
+                fileInfo.appendChild(checkmark);
+            }
+        });
+    </script>
+
 </body>
 </html>
