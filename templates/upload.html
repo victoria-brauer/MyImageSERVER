@@ -141,22 +141,28 @@
     </footer>
 
     <script>
+        // Получаем элементы: инпут файла и блок, где будет отображаться информация
         const fileInput = document.getElementById("fileInput");
         const fileInfo = document.getElementById("fileInfo");
 
+        // Добавляем обработчик события на изменение (выбор файла)
         fileInput.addEventListener("change", function () {
             fileInfo.innerHTML = "";
 
+            // Проверяем, выбран ли файл
             if (fileInput.files.length > 0) {
                 const name = fileInput.files[0].name;
 
+                // Создаём span с именем файла
                 const fileNameSpan = document.createElement("span");
                 fileNameSpan.textContent = name;
 
+                // Создаём галочку (проверка успешной загрузки)
                 const checkmark = document.createElement("span");
                 checkmark.textContent = "✅";
                 checkmark.classList.add("checkmark");
 
+                // Добавляем оба элемента в DOM
                 fileInfo.appendChild(fileNameSpan);
                 fileInfo.appendChild(checkmark);
             }
