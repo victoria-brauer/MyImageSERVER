@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 from utils.file_utils import is_allowed_file, MAX_FILE_SIZE, is_file_size_valid, get_unique_name
 
-# Настройка логгирования (глобальный уровень и хендлеры)
+# Настройка логгирования
 logs_dir = Path("logs")
 logs_dir.mkdir(exist_ok=True)
 log_file = logs_dir / "app.log"
