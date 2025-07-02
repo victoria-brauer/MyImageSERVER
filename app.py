@@ -1,13 +1,33 @@
 from fastapi import FastAPI, Request, UploadFile, File
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import uvicorn
-import uuid
+import logging
 from pathlib import Path
 from utils.file_utils import is_allowed_file, MAX_FILE_SIZE, is_file_size_valid, get_unique_name
-from fastapi.staticfiles import StaticFiles
 
+# Создание папки для логов
+logs_dir = Path("logs")
+logs_dir.mkdir(exist_ok=True)
+log_file = logs_dir / "app.log"
 
+# Настройка логгинга
+logger = logging.getLogger("app_logger")
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter("[{asctime}] - {levelname}: {message}", style="{")
+
+file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+# Инициализация FastAPI
 app = FastAPI()
 
 # Подключение статических папок
@@ -29,28 +49,27 @@ async def upload_img(request: Request):
 
 @app.post("/upload/")
 async def upload_img(request: Request, file: UploadFile = File(...)):
-    print(f'Файл получен {file.filename}')
+    logger.info(f"Файл получен: {file.filename}")
     my_file = Path(file.filename)
+
     if not is_allowed_file(my_file):
-        print('НЕ верное расширение')
+        logger.warning("Неразрешённый формат файла.")
         return {"error": "Неразрешённый формат файла. Разрешены: .jpg, .jpeg, .png, .gif"}
 
-    # Читаем контент файла (ограничение по размеру)
     content = await file.read(MAX_FILE_SIZE + 1)
     if not is_file_size_valid(content):
-        print(f"Размер файла превышает 5 МБ: {len(content)} байт")
+        logger.warning(f"Размер файла превышает 5 МБ: {len(content)} байт")
         return {"error": "Файл слишком большой. Максимальный размер — 5 МБ."}
     else:
-        print(f"Размер файла подходит: {len(content)} байт")
+        logger.info(f"Размер файла подходит: {len(content)} байт")
 
-    # Генерация уникального имени и сохранение
     new_file_name = get_unique_name(my_file)
     image_dir = Path("images")
     image_dir.mkdir(exist_ok=True)
     save_path = image_dir / new_file_name
     save_path.write_bytes(content)
 
-    print(f"Файл сохранён по пути: {save_path}")
+    logger.info(f"Файл сохранён по пути: {save_path}")
 
     return {
         "message": f"Файл {file.filename} успешно загружен.",
@@ -60,4 +79,3 @@ async def upload_img(request: Request, file: UploadFile = File(...)):
 
 if __name__ == '__main__':
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
-
