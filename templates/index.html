@@ -1,104 +1,31 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Добро пожаловать в Сервер Картинок</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            color: #333;
-            background: linear-gradient(to bottom right, #e0f7fa, #fce4ec);
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            text-align: center;
-            padding: 60px 20px 30px;
-        }
-
-        header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #4a90e2;
-        }
-
-        header p {
-            font-size: 1.2em;
-            max-width: 600px;
-            margin: 0 auto;
-            color: #555;
-        }
-
-        .buttons {
-            margin-top: 30px;
-        }
-
-        .buttons a {
-            display: inline-block;
-            margin: 10px;
-            padding: 14px 28px;
-            background-color: #4a90e2;
-            color: white;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 1.1em;
-            transition: background-color 0.3s ease;
-        }
-
-        .buttons a:hover {
-            background-color: #357ABD;
-        }
-
-        .preview {
-            max-width: 1000px;
-            margin: 40px auto;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .preview img {
-            width: 80%;
-            max-width: 600px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            margin-top: 20px;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: auto;
-            padding: 20px;
-            font-size: 0.9em;
-            color: #888;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Добро пожаловать в Сервер Картинок</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
 
-    <header>
-        <h1>Сервер Картинок</h1>
-        <p>Быстро загружайте, просматривайте и управляйте своими изображениями прямо через браузер. Поддерживаются форматы JPG, JPEG, PNG, GIF — просто и удобно.</p>
-        <div class="buttons">
-            <a href="/upload">Загрузить изображение</a>
-            <a href="/images">Галерея</a>
-        </div>
-    </header>
-
-    <div class="preview">
-        <h2>Как это работает?</h2>
-        <p>Вы загружаете изображение — оно сохраняется на сервере и сразу же отображается в галерее.</p>
-        <img src="/static/example.png" alt="Пример изображения">
+  <header>
+    <h1>Сервер Картинок</h1>
+    <p>Быстро загружайте, просматривайте и управляйте своими изображениями прямо через браузер. Поддерживаются форматы JPG, JPEG, PNG, GIF — просто и удобно.</p>
+    <div class="buttons">
+      <a href="/upload">Загрузить изображение</a>
+      <a href="/images">Галерея</a>
     </div>
+  </header>
 
-    <footer>
-        © 2025 Сервер Картинок. Сделано с любовью ❤
-    </footer>
+  <div class="preview">
+    <h2>Как это работает?</h2>
+    <p>Вы загружаете изображение — оно сохраняется на сервере и сразу же отображается в галерее.</p>
+    <img src="/static/example.png" alt="Пример изображения">
+  </div>
+
+  <footer>
+      © 2025 Сервер Картинок. Сделано с любовью ❤
+  </footer>
 
 </body>
 </html>
