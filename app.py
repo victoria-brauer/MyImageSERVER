@@ -6,6 +6,7 @@ import uvicorn
 import logging
 from pathlib import Path
 from utils.file_utils import is_allowed_file, MAX_FILE_SIZE, is_file_size_valid, get_unique_name
+from db import connect_db, close_db
 
 # Настройка логгирования
 """
@@ -121,6 +122,19 @@ async def upload_img(request: Request, file: UploadFile = File(...)):
         )
 
 
+@app.get("/db-test")
+async def db_test_connect():
+    """
+    Проверка возможности подключения к PostgreSQL
+    """
+    conn = connect_db()
+    if conn:
+        close_db(conn)
+        return {'status': 'ok', "message": "Соединение с БД установлено"}
+    else:
+        return {'status': 'error', "message": "Соединение с БД НЕ установлено"}
+
+
 if __name__ == '__main__':
     """
     Точка входа при запуске скрипта напрямую.
@@ -128,3 +142,12 @@ if __name__ == '__main__':
     с включенной перезагрузкой (reload).
     """
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+
+    # CREATE TABLE images(
+    #     id SERIAL PRIMARY KEY,
+    #     filename TEXT NOT NULL,
+    #     original_name TEXT NOT NULL,
+    #     size INTEGER NOT NULL,
+    #     upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    #     file_type TEXT NOT NULL
+    # );
