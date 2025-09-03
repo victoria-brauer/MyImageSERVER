@@ -10,6 +10,9 @@ DB_PORT = 5432
 
 
 def connect_db():
+    """
+    Устанавливает соединение с БД PostgreSQL.
+    """
     try:
         conn = psycopg2.connect(
             dbname=DB_NAME,
@@ -25,11 +28,18 @@ def connect_db():
 
 
 def close_db(conn):
+    """
+    Закрывает соединение с БД.
+    """
     if conn:
         conn.close()
 
 
 def create_table_images():
+    """
+    Создаёт таблицу 'images' в БД PostgreSQL.
+    Если таблица уже существует, то произойдёт ошибка.
+    """
     conn = connect_db()
     cur = conn.cursor()
 
@@ -50,6 +60,9 @@ def create_table_images():
 
 
 def save_images(filename, original_name, size, upload_time, file_type):
+    """
+    Сохраняет метаданные изображения в таблицу 'images'.
+    """
     conn = connect_db()
     cur = conn.cursor()
 
