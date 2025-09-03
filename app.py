@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Request, UploadFile, File
+from fastapi import FastAPI, Request, UploadFile, File, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import logging
 from pathlib import Path
+from datetime import datetime
 from utils.file_utils import is_allowed_file, MAX_FILE_SIZE, is_file_size_valid, get_unique_name
-from db import connect_db, close_db
+from db import connect_db, close_db, save_images
 
 # Настройка логгирования
 """
@@ -65,15 +66,6 @@ async def upload_img(request: Request):
 async def upload_img(request: Request, file: UploadFile = File(...)):
     """
     POST-обработчик для загрузки изображения.
-
-    Логика:
-    - Логируем получение файла.
-    - Проверяем формат (разрешены .jpg, .jpeg, .png, .gif).
-    - Проверяем размер (максимум 5 МБ).
-    - Генерируем уникальное имя файла.
-    - Сохраняем файл в папку images.
-    - Возвращаем JSON с сообщением и ссылкой на файл.
-
     В случае ошибки возвращает JSON с кодом 500.
     """
     try:
@@ -107,6 +99,14 @@ async def upload_img(request: Request, file: UploadFile = File(...)):
 
         logger.info(f"Файл сохранён по пути: {save_path}")
 
+        save_images(
+            filename=new_file_name,
+            original_name=file.filename,
+            size=len(content) // 1024,
+            upload_time=datetime.now(),
+            file_type=my_file.suffix.lstrip('.')
+        )
+
         # Успешный ответ
         return {
             "message": f"Файл {file.filename} успешно загружен.",
@@ -120,6 +120,30 @@ async def upload_img(request: Request, file: UploadFile = File(...)):
             status_code=500,
             content={"error": "Произошла ошибка при обработке файла. Пожалуйста, попробуйте позже."}
         )
+
+
+@app.get("/images-list", response_class=HTMLResponse)
+async def list_images(request: Request):
+    conn = connect_db()
+    if not conn:
+        return templates.TemplateResponse("error.html", {"request": request, "message": "Нет соединения с БД"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT filename, original_name, size, upload_time, file_type
+            FROM images
+            ORDER BY upload_time DESC
+        """)
+        images = cursor.fetchall()
+        cursor.close()
+        close_db(conn)
+
+        return templates.TemplateResponse("images_list.html", {"request": request, "images": images})
+
+    except Exception as e:
+        logger.exception("Ошибка при извлечении данных из БД:")
+        return templates.TemplateResponse("error.html", {"request": request, "message": "Ошибка загрузки списка изображений"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.get("/db-test")
