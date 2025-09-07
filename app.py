@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request, UploadFile, File, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Request, UploadFile, File, status, Form
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -123,27 +123,111 @@ async def upload_img(request: Request, file: UploadFile = File(...)):
 
 
 @app.get("/images-list", response_class=HTMLResponse)
-async def list_images(request: Request):
+async def list_images(request: Request, page: int = 1):
+    """
+    Обработчик GET-запроса для отображения списка изображений с пагинацией.
+    - По умолчанию отображает 10 изображений на страницу.
+    - Поддерживает параметр ?page=2 для перехода на другие страницы.
+    """
     conn = connect_db()
     if not conn:
-        return templates.TemplateResponse("error.html", {"request": request, "message": "Нет соединения с БД"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return templates.TemplateResponse(
+            "error.html",
+            {"request": request, "message": "Нет соединения с БД"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
     try:
         cursor = conn.cursor()
+
+        # Считаем общее количество изображений
+        cursor.execute("SELECT COUNT(*) FROM images;")
+        total_images = cursor.fetchone()[0]
+
+        per_page = 10
+        offset = (page - 1) * per_page
+        total_pages = (total_images + per_page - 1) // per_page  # округление вверх
+
+        # Получаем записи с учетом LIMIT и OFFSET
         cursor.execute("""
-            SELECT filename, original_name, size, upload_time, file_type
+            SELECT id, filename, original_name, size, upload_time, file_type
             FROM images
             ORDER BY upload_time DESC
-        """)
+            LIMIT %s OFFSET %s
+        """, (per_page, offset))
         images = cursor.fetchall()
+
         cursor.close()
         close_db(conn)
 
-        return templates.TemplateResponse("images_list.html", {"request": request, "images": images})
+        return templates.TemplateResponse("images_list.html", {
+            "request": request,
+            "images": images,
+            "page": page,
+            "total_pages": total_pages
+        })
 
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка при извлечении данных из БД:")
-        return templates.TemplateResponse("error.html", {"request": request, "message": "Ошибка загрузки списка изображений"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return templates.TemplateResponse(
+            "error.html",
+            {"request": request, "message": "Ошибка загрузки списка изображений"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@app.post("/delete/{image_id}")
+async def delete_image(image_id: int):
+    """
+    Удаляет изображение:
+    - запись в БД;
+    - сам файл в папке /images.
+    После чего перенаправляет обратно на список.
+    """
+    conn = connect_db()
+    if not conn:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Нет соединения с БД"}
+        )
+
+    try:
+        cursor = conn.cursor()
+        # Получаем имя файла по id
+        cursor.execute("SELECT filename FROM images WHERE id = %s", (image_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            close_db(conn)
+            return JSONResponse(status_code=404, content={"error": "Файл не найден"})
+
+        filename = row[0]
+
+        # Удаляем запись из БД
+        cursor.execute("DELETE FROM images WHERE id = %s", (image_id,))
+        conn.commit()
+        cursor.close()
+        close_db(conn)
+
+        # Удаляем файл с диска
+        file_path = Path(__file__).resolve().parent / "images" / filename
+        if file_path.exists():
+            file_path.unlink()
+            logger.info(f"Файл {filename} удалён с диска.")
+        else:
+            logger.warning(f"Файл {filename} отсутствует на диске при удалении.")
+
+        logger.info(f"Изображение {filename} удалено (id={image_id})")
+
+        # Перенаправляем на список
+        return RedirectResponse(url="/images-list", status_code=303)
+
+    except Exception:
+        logger.exception("Ошибка при удалении изображения:")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Ошибка при удалении изображения"}
+        )
 
 
 @app.get("/db-test")
